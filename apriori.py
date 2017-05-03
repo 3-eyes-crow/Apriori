@@ -20,29 +20,29 @@ def subsets(arr):
 
 
 def returnItemsWithMinSupport(itemSet, transactionList, minSupport, freqSet):
-        """calculates the support for items in the itemSet and returns a subset
-       of the itemSet each of whose elements satisfies the minimum support"""
-        _itemSet = set()
-        localSet = defaultdict(int)
+    """calculates the support for items in the itemSet and returns a subset
+   of the itemSet each of whose elements satisfies the minimum support"""
+    _itemSet = set()
+    localSet = defaultdict(int)
 
-        for item in itemSet:
-                for transaction in transactionList:
-                        if item.issubset(transaction):
-                                freqSet[item] += 1
-                                localSet[item] += 1
+    for item in itemSet:
+        for transaction in transactionList:
+            if item.issubset(transaction):
+                freqSet[item] += 1
+                localSet[item] += 1
 
-        for item, count in localSet.items():
-                support = float(count)/len(transactionList)
+    for item, count in localSet.items():
+        support = float(count) / len(transactionList)
 
-                if support >= minSupport:
-                        _itemSet.add(item)
+        if support >= minSupport:
+            _itemSet.add(item)
 
-        return _itemSet
+    return _itemSet
 
 
 def joinSet(itemSet, length):
-        """Join a set with itself and returns the n-element itemsets"""
-        return set([i.union(j) for i in itemSet for j in itemSet if len(i.union(j)) == length])
+    """Join a set with itself and returns the n-element itemsets"""
+    return set([i.union(j) for i in itemSet for j in itemSet if len(i.union(j)) == length])
 
 
 def getItemSetTransactionList(data_iterator):
@@ -52,7 +52,7 @@ def getItemSetTransactionList(data_iterator):
         transaction = frozenset(record)
         transactionList.append(transaction)
         for item in transaction:
-            itemSet.add(frozenset([item]))              # Generate 1-itemSets
+            itemSet.add(frozenset([item]))  # Generate 1-itemSets
     return itemSet, transactionList
 
 
@@ -80,8 +80,8 @@ def runApriori(data_iter, minSupport, minConfidence):
 
     currentLSet = oneCSet
     k = 2
-    while(currentLSet != set([])):
-        largeSet[k-1] = currentLSet
+    while (currentLSet != set([])):
+        largeSet[k - 1] = currentLSet
         currentLSet = joinSet(currentLSet, k)
         currentCSet = returnItemsWithMinSupport(currentLSet,
                                                 transactionList,
@@ -91,8 +91,8 @@ def runApriori(data_iter, minSupport, minConfidence):
         k = k + 1
 
     def getSupport(item):
-            """local function which Returns the support of an item"""
-            return float(freqSet[item])/len(transactionList)
+        """local function which Returns the support of an item"""
+        return float(freqSet[item]) / len(transactionList)
 
     toRetItems = []
     for key, value in largeSet.items():
@@ -100,13 +100,13 @@ def runApriori(data_iter, minSupport, minConfidence):
                            for item in value])
 
     toRetRules = []
-    for key, value in largeSet.items()[1:]:
+    for key, value in list(largeSet.items())[1:]:
         for item in value:
             _subsets = map(frozenset, [x for x in subsets(item)])
             for element in _subsets:
                 remain = item.difference(element)
                 if len(remain) > 0:
-                    confidence = getSupport(item)/getSupport(element)
+                    confidence = getSupport(item) / getSupport(element)
                     if confidence >= minConfidence:
                         toRetRules.append(((tuple(element), tuple(remain)),
                                            confidence))
@@ -115,21 +115,21 @@ def runApriori(data_iter, minSupport, minConfidence):
 
 def printResults(items, rules):
     """prints the generated itemsets sorted by support and the confidence rules sorted by confidence"""
-    for item, support in sorted(items, key=lambda (item, support): support):
-        print "item: %s , %.3f" % (str(item), support)
-    print "\n------------------------ RULES:"
-    for rule, confidence in sorted(rules, key=lambda (rule, confidence): confidence):
+    for item, support in sorted(items, key=lambda x: x[1]):
+        print("item: %s , %.3f" % (str(item), support))
+    print("\n------------------------ RULES:")
+    for rule, confidence in sorted(rules, key=lambda x: x[1]):
         pre, post = rule
-        print "Rule: %s ==> %s , %.3f" % (str(pre), str(post), confidence)
+        print("Rule: %s ==> %s , %.3f" % (str(pre), str(post), confidence))
 
 
 def dataFromFile(fname):
-        """Function which reads from the file and yields a generator"""
-        file_iter = open(fname, 'rU')
-        for line in file_iter:
-                line = line.strip().rstrip(',')                         # Remove trailing comma
-                record = frozenset(line.split(','))
-                yield record
+    """Function which reads from the file and yields a generator"""
+    file_iter = open(fname, 'rU')
+    for line in file_iter:
+        line = line.strip().rstrip(',')  # Remove trailing comma
+        record = frozenset(line.split(','))
+        yield record
 
 
 if __name__ == "__main__":
@@ -154,16 +154,20 @@ if __name__ == "__main__":
 
     inFile = None
     if options.input is None:
-            inFile = sys.stdin
+        inFile = sys.stdin
     elif options.input is not None:
-            inFile = dataFromFile(options.input)
+        inFile = dataFromFile(options.input)
     else:
-            print 'No dataset filename specified, system with exit\n'
-            sys.exit('System will exit')
+        print('No dataset filename specified, system with exit\n')
+        sys.exit('System will exit')
 
     minSupport = options.minS
     minConfidence = options.minC
 
     items, rules = runApriori(inFile, minSupport, minConfidence)
 
+    print("print result")
+
     printResults(items, rules)
+
+    print("end")
